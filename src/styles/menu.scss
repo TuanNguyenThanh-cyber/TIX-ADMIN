@@ -1,0 +1,11 @@
+.collapse-item {
+    padding: 5px 10px;
+    display: block;
+    color: #3a3b45;
+    text-decoration: none;
+    border-radius: 0.35rem;
+    white-space: nowrap;
+    &:hover {
+        background-color: #eaecf4;
+    }
+}

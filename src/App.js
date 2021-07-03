@@ -2,6 +2,8 @@ import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
 import AdminRoute from "./auth/AdminRoute";
 import AdminLayout from "./layouts/AdminLayout";
 import Dashboard from "./pages/Dashboard";
+import FilmManagement from "./pages/FilmManagement";
+import UserManagement from "./pages/UserManagement";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -19,10 +21,14 @@ function App() {
                 </AdminLayout>
               </AdminRoute>
               <AdminRoute path="/admin/quanlyphim">
-                <AdminLayout>Quản lý phim</AdminLayout>
+                <AdminLayout>
+                  <FilmManagement></FilmManagement>
+                </AdminLayout>
               </AdminRoute>
               <AdminRoute path="/admin/quanlynguoidung">
-                <AdminLayout>Quản lý người dùng</AdminLayout>
+                <AdminLayout>
+                  <UserManagement></UserManagement>
+                </AdminLayout>
               </AdminRoute>
               <Route path="/admin/login" exact>
                 <Login></Login>

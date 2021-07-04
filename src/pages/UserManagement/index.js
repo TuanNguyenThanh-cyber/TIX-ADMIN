@@ -10,7 +10,7 @@ export default function UserManagement() {
           <input
             type="text"
             className="form-control"
-            placeholder="Search movie here ..."
+            placeholder="Search user here ..."
             aria-label="Recipient's username"
             aria-describedby="button-addon2"
           />

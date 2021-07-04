@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
@@ -124,6 +124,7 @@ export default function CustomPaginationActionsTable(props) {
     register,
     formState: { errors, isValid },
     handleSubmit,
+    setValue,
   } = useForm({
     resolver: yupResolver(schema),
     mode: "onChange",
@@ -147,12 +148,20 @@ export default function CustomPaginationActionsTable(props) {
   };
 
   // Set Modal Popup
-  const toggle = () => setModal(!modal);
+  const toggle = (dataMovie) => {
+    setModal(!modal);
+    setValue("maPhim", dataMovie.maPhim);
+    setValue("tenPhim", dataMovie.tenPhim);
+    setValue("biDanh", dataMovie.biDanh);
+    setValue("trailer", dataMovie.trailer);
+    // setValue("hinhAnh", dataMovie.hinhAnh);
+    setValue("moTa", dataMovie.moTa);
+    setValue("ngayKhoiChieu", dataMovie.ngayKhoiChieu);
+    setValue("danhGia", dataMovie.danhGia);
+  };
 
   // Handle Update Movie
-  const handleUpdateMovie = () => {
-
-  }
+  const handleUpdateMovie = () => {};
 
   return (
     <TableContainer component={Paper}>
@@ -210,7 +219,7 @@ export default function CustomPaginationActionsTable(props) {
                 <button
                   type="button"
                   className="btn btn-outline-success mr-2"
-                  onClick={toggle}
+                  onClick={() => toggle(dataMovie)}
                 >
                   Sửa
                 </button>
@@ -223,6 +232,7 @@ export default function CustomPaginationActionsTable(props) {
                     >
                       <div className="form-group row">
                         <div className="col-sm-6 mb-3 mb-sm-0">
+                          <p className="text-monospace">Mã phim</p>
                           <input
                             type="text"
                             className="form-control "
@@ -231,6 +241,7 @@ export default function CustomPaginationActionsTable(props) {
                           />
                         </div>
                         <div className="col-sm-6">
+                          <p className="text-monospace">Tên phim</p>
                           <input
                             type="text"
                             className="form-control"
@@ -241,6 +252,7 @@ export default function CustomPaginationActionsTable(props) {
                       </div>
                       <div className="form-group row">
                         <div className="col-sm-6 mb-3 mb-sm-0">
+                          <p className="text-monospace">Bí danh</p>
                           <input
                             type="text"
                             className="form-control"
@@ -249,6 +261,7 @@ export default function CustomPaginationActionsTable(props) {
                           />
                         </div>
                         <div className="col-sm-6">
+                          <p className="text-monospace">Trailer</p>
                           <input
                             type="text"
                             className="form-control"
@@ -259,6 +272,7 @@ export default function CustomPaginationActionsTable(props) {
                       </div>
                       <div className="form-group row">
                         <div className="col-sm-6 mb-3 mb-sm-0">
+                          <p className="text-monospace">Đánh giá</p>
                           <input
                             type="text"
                             className="form-control"
@@ -267,14 +281,16 @@ export default function CustomPaginationActionsTable(props) {
                           />
                         </div>
                         <div className="col-sm-6">
+                          <p className="text-monospace">Ngày khởi chiếu</p>
                           <input
-                            type="date"
-                            name="begin"
+                            type="datetime-local"
                             className="form-control"
+                            {...register("ngayKhoiChieu")}
                           />
                         </div>
                       </div>
                       <div className="form-group">
+                        <p className="text-monospace">Mô tả</p>
                         <textarea
                           className="form-control "
                           placeholder="Mô tả"
@@ -283,13 +299,20 @@ export default function CustomPaginationActionsTable(props) {
                         />
                       </div>
                       <div className="form-group">
-                        <p>Select a picture (Format: .JPEG, .PNG)</p>
-                        <input type="file" id="myfile" name="myfile" />
+                        <p className="text-monospace">
+                          Hình ảnh (Định dạng: .JPEG, .PNG)
+                        </p>
+                        <input
+                          type="file"
+                          id="myfile"
+                          name="myfile"
+                          {...register("hinhAnh")}
+                        />
                       </div>
                     </form>
                   </ModalBody>
                   <ModalFooter>
-                    <Button color="primary" onClick={toggle}>
+                    <Button color="primary" type="submit">
                       Submit
                     </Button>{" "}
                     <Button color="danger" onClick={toggle}>

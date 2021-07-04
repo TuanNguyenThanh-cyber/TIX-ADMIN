@@ -10,21 +10,29 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import "../../styles/customFileInput.scss";
 import Alert from "@material-ui/lab/Alert";
+import { addMovieAction } from "../../redux/actions/addMovieAction";
+import {formatDay} from '../../utils/formatDay'
 
 // Tạo schame validation
 const schema = yup.object().shape({
-  account: yup.string().required("Account can not be blank !"),
-  fullName: yup.string().required("Name can not be blank !"),
-  email: yup
+  maPhim: yup.string().required("Mã phim không được để trống"),
+  tenPhim: yup.string().required("Tên phim không được để trống"),
+  biDanh: yup.string().required("Bí danh không được để trống"),
+  trailer: yup
     .string()
-    .required("Email can not be blank !")
-    .email("Email has wrong format !"),
-  phone: yup.string().required("Phone can not be blank !"),
-  password: yup.string().required("Password can not be blank !"),
+    .required("Trailer không được để trống")
+    .url("Url không hợp lệ"),
+  danhGia: yup
+    .number()
+    .required("Đánh giá không được để trống")
+    .min(0, "Đánh giá không được là số âm")
+    .max(10, "Đánh giá không vượt quá 10"),
+  moTa: yup.string().required("Mô tả không được để trống"),
 });
 
 export default function FilmManagement() {
   const dispatch = useDispatch();
+  const { error } = useSelector((state) => state.addMovie);
   const [modal, setModal] = useState(false);
   let dataMovies = [];
   const { dataMovieList } = useSelector((state) => state.movieList);
@@ -53,7 +61,21 @@ export default function FilmManagement() {
   const toggle = () => setModal(!modal);
 
   // Handle Add Movie
-  const handleAddMovie = () => {};
+  const handleAddMovie = (value) => {
+    const ObjToAddMovie = {
+      ...value,
+      hinhAnh: value.hinhAnh[0],
+      ngayKhoiChieu: formatDay(value.ngayKhoiChieu),
+      maNhom: "GP10",
+    };
+    console.log("ObjToAddMovie", ObjToAddMovie);
+    let formData = new FormData();
+    for (let key in ObjToAddMovie) {
+      formData.append(key, ObjToAddMovie[key]);
+    }
+    console.log("PHIM: ", formData.get("tenPhim"));
+    dispatch(addMovieAction(formData));
+  };
 
   return (
     <div className="container">
@@ -85,75 +107,130 @@ export default function FilmManagement() {
             <form className="user" onSubmit={handleSubmit(handleAddMovie)}>
               <div className="form-group row">
                 <div className="col-sm-6 mb-3 mb-sm-0">
+                  <p className="text-monospace">Mã phim</p>
                   <input
                     type="text"
                     className="form-control "
                     placeholder="Mã phim"
                     {...register("maPhim")}
                   />
+                  {errors.maPhim && (
+                    <Alert severity="error" className="text-monospace mt-3">
+                      {errors.maPhim.message}
+                    </Alert>
+                  )}
                 </div>
                 <div className="col-sm-6">
+                  <p className="text-monospace">Tên phim</p>
                   <input
                     type="text"
                     className="form-control"
                     placeholder="Tên phim"
                     {...register("tenPhim")}
                   />
+                  {errors.tenPhim && (
+                    <Alert severity="error" className="text-monospace mt-3">
+                      {errors.tenPhim.message}
+                    </Alert>
+                  )}
                 </div>
               </div>
               <div className="form-group row">
                 <div className="col-sm-6 mb-3 mb-sm-0">
+                  <p className="text-monospace">Bí danh</p>
                   <input
                     type="text"
                     className="form-control"
                     placeholder="Bí Danh"
                     {...register("biDanh")}
                   />
+                  {errors.biDanh && (
+                    <Alert severity="error" className="text-monospace mt-3">
+                      {errors.biDanh.message}
+                    </Alert>
+                  )}
                 </div>
                 <div className="col-sm-6">
+                  <p className="text-monospace">Trailer</p>
                   <input
                     type="text"
                     className="form-control"
                     placeholder="Trailer"
                     {...register("trailer")}
                   />
+                  {errors.trailer && (
+                    <Alert severity="error" className="text-monospace mt-3">
+                      {errors.trailer.message}
+                    </Alert>
+                  )}
                 </div>
               </div>
               <div className="form-group row">
                 <div className="col-sm-6 mb-3 mb-sm-0">
+                  <p className="text-monospace">Đánh giá</p>
                   <input
                     type="text"
                     className="form-control"
                     placeholder="Đánh giá"
                     {...register("danhGia")}
                   />
+                  {errors.danhGia && (
+                    <Alert severity="error" className="text-monospace mt-3">
+                      {errors.danhGia.message}
+                    </Alert>
+                  )}
                 </div>
                 <div className="col-sm-6">
-                  <input type="date" name="begin" className="form-control" />
+                  <p className="text-monospace">Ngày khởi chiếu</p>
+                  <input
+                    type="date"
+                    className="form-control"
+                    {...register("ngayKhoiChieu")}
+                    required
+                  />
                 </div>
               </div>
               <div className="form-group">
+                <p className="text-monospace">Mô tả</p>
                 <textarea
                   className="form-control "
                   placeholder="Mô tả"
                   {...register("moTa")}
                   rows="4"
                 />
+                {errors.moTa && (
+                  <Alert severity="error" className="text-monospace mt-3">
+                    {errors.moTa.message}
+                  </Alert>
+                )}
               </div>
               <div className="form-group">
-                <p>Select a picture (Format: .JPEG, .PNG)</p>
-                <input type="file" id="myfile" name="myfile" />
+                <p className="text-monospace">
+                  Hình ảnh (Định dạng: .JPEG, .PNG)
+                </p>
+                <input
+                  type="file"
+                  id="myfile"
+                  name="myfile"
+                  {...register("hinhAnh")}
+                  required
+                />
               </div>
+              <ModalFooter>
+                <Button color="primary" type="submit">
+                  Submit
+                </Button>
+                <Button color="danger" onClick={toggle}>
+                  Cancel
+                </Button>
+                {error && (
+                  <Alert severity="error" className="text-monospace mt-3">
+                    {error}
+                  </Alert>
+                )}
+              </ModalFooter>
             </form>
           </ModalBody>
-          <ModalFooter>
-            <Button color="primary" onClick={toggle}>
-              Submit
-            </Button>{" "}
-            <Button color="danger" onClick={toggle}>
-              Cancel
-            </Button>
-          </ModalFooter>
         </Modal>
       </div>
       <TableFilm dataMovieList={dataMovies}></TableFilm>

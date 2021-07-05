@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import PropTypes from "prop-types";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
@@ -15,21 +16,29 @@ import FirstPageIcon from "@material-ui/icons/FirstPage";
 import KeyboardArrowLeft from "@material-ui/icons/KeyboardArrowLeft";
 import KeyboardArrowRight from "@material-ui/icons/KeyboardArrowRight";
 import LastPageIcon from "@material-ui/icons/LastPage";
+import Alert from "@material-ui/lab/Alert";
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { uploadMovieAction } from "../redux/actions/uploadMovieAction";
+import { formatDay } from "../utils/formatDay";
 
 // Tạo schame validation
 const schema = yup.object().shape({
-  account: yup.string().required("Account can not be blank !"),
-  fullName: yup.string().required("Name can not be blank !"),
-  email: yup
+  maPhim: yup.string().required("Mã phim không được để trống"),
+  tenPhim: yup.string().required("Tên phim không được để trống"),
+  biDanh: yup.string().required("Bí danh không được để trống"),
+  trailer: yup
     .string()
-    .required("Email can not be blank !")
-    .email("Email has wrong format !"),
-  phone: yup.string().required("Phone can not be blank !"),
-  password: yup.string().required("Password can not be blank !"),
+    .required("Trailer không được để trống")
+    .url("Url không hợp lệ"),
+  danhGia: yup
+    .number()
+    .required("Đánh giá không được để trống")
+    .min(0, "Đánh giá không được là số âm")
+    .max(10, "Đánh giá không vượt quá 10"),
+  moTa: yup.string().required("Mô tả không được để trống"),
 });
 
 const useStyles1 = makeStyles((theme) => ({
@@ -116,8 +125,15 @@ const useStyles2 = makeStyles({
 });
 
 export default function CustomPaginationActionsTable(props) {
-  const { dataMovieList } = props;
+  const [dataMovieList, setDataMovieList] = useState(props.dataMovies);
+  // const { dataMovieList } = props;
   const [modal, setModal] = useState(false);
+  const dispatch = useDispatch();
+
+  // Set dataMovieList
+  useEffect(() => {
+    setDataMovieList(props.dataMovies);
+  }, [props.dataMovies]);
 
   // Variable for form
   const {
@@ -154,14 +170,26 @@ export default function CustomPaginationActionsTable(props) {
     setValue("tenPhim", dataMovie.tenPhim);
     setValue("biDanh", dataMovie.biDanh);
     setValue("trailer", dataMovie.trailer);
-    // setValue("hinhAnh", dataMovie.hinhAnh);
     setValue("moTa", dataMovie.moTa);
     setValue("ngayKhoiChieu", dataMovie.ngayKhoiChieu);
     setValue("danhGia", dataMovie.danhGia);
   };
 
   // Handle Update Movie
-  const handleUpdateMovie = () => {};
+  const handleUpdateMovie = (value) => {
+    const ObjToUploadMovie = {
+      ...value,
+      hinhAnh: value.hinhAnh[0],
+      ngayKhoiChieu: formatDay(value.ngayKhoiChieu),
+      maNhom: "GP10",
+    };
+    console.log("ObjToUploadMovie", ObjToUploadMovie);
+    let formData = new FormData();
+    for (let key in ObjToUploadMovie) {
+      formData.append(key, ObjToUploadMovie[key]);
+    }
+    dispatch(uploadMovieAction(formData));
+  };
 
   return (
     <TableContainer component={Paper}>
@@ -223,6 +251,9 @@ export default function CustomPaginationActionsTable(props) {
                 >
                   Sửa
                 </button>
+                <button type="button" className="btn btn-outline-danger mr-2">
+                  Xóa
+                </button>
                 <Modal isOpen={modal} toggle={toggle}>
                   <ModalHeader toggle={toggle}>Sửa phim</ModalHeader>
                   <ModalBody>
@@ -239,6 +270,14 @@ export default function CustomPaginationActionsTable(props) {
                             placeholder="Mã phim"
                             {...register("maPhim")}
                           />
+                          {errors.maPhim && (
+                            <Alert
+                              severity="error"
+                              className="text-monospace mt-3"
+                            >
+                              {errors.maPhim.message}
+                            </Alert>
+                          )}
                         </div>
                         <div className="col-sm-6">
                           <p className="text-monospace">Tên phim</p>
@@ -248,6 +287,14 @@ export default function CustomPaginationActionsTable(props) {
                             placeholder="Tên phim"
                             {...register("tenPhim")}
                           />
+                          {errors.biDanh && (
+                            <Alert
+                              severity="error"
+                              className="text-monospace mt-3"
+                            >
+                              {errors.biDanh.message}
+                            </Alert>
+                          )}
                         </div>
                       </div>
                       <div className="form-group row">
@@ -268,6 +315,14 @@ export default function CustomPaginationActionsTable(props) {
                             placeholder="Trailer"
                             {...register("trailer")}
                           />
+                          {errors.trailer && (
+                            <Alert
+                              severity="error"
+                              className="text-monospace mt-3"
+                            >
+                              {errors.trailer.message}
+                            </Alert>
+                          )}
                         </div>
                       </div>
                       <div className="form-group row">
@@ -279,6 +334,14 @@ export default function CustomPaginationActionsTable(props) {
                             placeholder="Đánh giá"
                             {...register("danhGia")}
                           />
+                          {errors.danhGia && (
+                            <Alert
+                              severity="error"
+                              className="text-monospace mt-3"
+                            >
+                              {errors.danhGia.message}
+                            </Alert>
+                          )}
                         </div>
                         <div className="col-sm-6">
                           <p className="text-monospace">Ngày khởi chiếu</p>
@@ -286,6 +349,7 @@ export default function CustomPaginationActionsTable(props) {
                             type="datetime-local"
                             className="form-control"
                             {...register("ngayKhoiChieu")}
+                            required
                           />
                         </div>
                       </div>
@@ -297,32 +361,32 @@ export default function CustomPaginationActionsTable(props) {
                           {...register("moTa")}
                           rows="4"
                         />
+                        {errors.moTa && (
+                          <Alert
+                            severity="error"
+                            className="text-monospace mt-3"
+                          >
+                            {errors.moTa.message}
+                          </Alert>
+                        )}
                       </div>
                       <div className="form-group">
                         <p className="text-monospace">
                           Hình ảnh (Định dạng: .JPEG, .PNG)
                         </p>
-                        <input
-                          type="file"
-                          id="myfile"
-                          name="myfile"
-                          {...register("hinhAnh")}
-                        />
+                        <input type="file" {...register("hinhAnh")} required />
                       </div>
+                      <ModalFooter>
+                        <Button color="primary" type="submit">
+                          Submit
+                        </Button>
+                        <Button color="danger" onClick={toggle}>
+                          Cancel
+                        </Button>
+                      </ModalFooter>
                     </form>
                   </ModalBody>
-                  <ModalFooter>
-                    <Button color="primary" type="submit">
-                      Submit
-                    </Button>{" "}
-                    <Button color="danger" onClick={toggle}>
-                      Cancel
-                    </Button>
-                  </ModalFooter>
                 </Modal>
-                <button type="button" className="btn btn-outline-danger mr-2">
-                  Xóa
-                </button>
               </TableCell>
             </TableRow>
           ))}

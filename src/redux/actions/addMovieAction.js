@@ -12,6 +12,11 @@ export function addMovieAction(value) {
     try {
       const { data } = await filmAPI.addMovie(value);
       dispatch({ type: ADD_MOVIE_SUCCESS, payload: { data } });
+      Swal.fire("Add Movie Successful !", "TIX ADMIN", "success").then((result) => {
+        if(result.isConfirmed){
+          window.location.reload();
+        }
+      });;
     } catch (error) {
       dispatch({
         type: ADD_MOVIE_FAILURE,

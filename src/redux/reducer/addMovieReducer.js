@@ -10,7 +10,7 @@ const initialState = {
   error: null,
 };
 
-function getMovieListReducer(state = initialState, action) {
+function addMovieListReducer(state = initialState, action) {
   switch (action.type) {
     case ADD_MOVIE_REQUEST: {
       return { ...state, Loading: true, error: null };
@@ -26,4 +26,4 @@ function getMovieListReducer(state = initialState, action) {
   }
 }
 
-export default getMovieListReducer;
+export default addMovieListReducer;

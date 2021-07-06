@@ -12,11 +12,13 @@ export function uploadMovieAction(value) {
     try {
       const { data } = await filmAPI.uploadMovie(value);
       dispatch({ type: UPLOAD_MOVIE_SUCCESS, payload: { data } });
+      Swal.fire("Update Movie Successful !", "TIX ADMIN", "success");
     } catch (error) {
       dispatch({
         type: UPLOAD_MOVIE_FAILURE,
         payload: { error: error.response.data },
       });
+      Swal.fire(error.response.data, "TIX ADMIN", "error");
     }
   };
 }

@@ -137,9 +137,9 @@ export default function FilmManagement() {
   const [modalAddMovie, setModalAddMovie] = useState(false);
   const [modalUpdateMovie, setModalUpdateMovie] = useState(false);
   const [searchMovie, setSearchMovie] = useState("");
-  let dataMovies = [];
+  // let dataMovies = [];
   const { dataMovieList, Loading } = useSelector((state) => state.movieList);
-  // const [dataMovies, setDataMovies] = useState(dataMovieList);
+  const [dataMovies, setDataMovies] = useState(dataMovieList);
 
   // Variable for form
   const {
@@ -158,20 +158,21 @@ export default function FilmManagement() {
   }, []);
 
   // use dataMovies when dataMovieList has data right away !
-  if (dataMovieList) {
-    dataMovies = dataMovieList;
-  }
+  // if (dataMovieList) {
+  //   dataMovies = dataMovieList;
+  // }
 
   // Update dataMovies when dataMovieList has changed !
-  useEffect(async () => {
-    dataMovies = dataMovieList;
+  useEffect(() => {
+    // dataMovies = dataMovieList;
+    setDataMovies(dataMovieList);
   }, [dataMovieList]);
 
   // Set Modal Popup Add Movie
   const toggleAddMovie = () => setModalAddMovie(!modalAddMovie);
 
   // Handle Add Movie
-  const handleAddMovie = (value) => {
+  const handleAddMovie = async (value) => {
     const ObjToAddMovie = {
       ...value,
       hinhAnh: value.hinhAnh[0],
@@ -183,7 +184,8 @@ export default function FilmManagement() {
     for (let key in ObjToAddMovie) {
       formData.append(key, ObjToAddMovie[key]);
     }
-    dispatch(addMovieAction(formData));
+    await dispatch(addMovieAction(formData));
+    await dispatch(getMovieListAction());
   };
 
   const classes = useStyles2();
@@ -191,7 +193,8 @@ export default function FilmManagement() {
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const emptyRows =
-    rowsPerPage - Math.min(rowsPerPage, dataMovies.length - page * rowsPerPage);
+    rowsPerPage -
+    Math.min(rowsPerPage, dataMovies?.length - page * rowsPerPage);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -215,7 +218,7 @@ export default function FilmManagement() {
   };
 
   // Handle Update Movie
-  const handleUpdateMovie = (value) => {
+  const handleUpdateMovie = async (value) => {
     const ObjToUploadMovie = {
       ...value,
       hinhAnh: value.hinhAnh[0],
@@ -227,7 +230,8 @@ export default function FilmManagement() {
     for (let key in ObjToUploadMovie) {
       formData.append(key, ObjToUploadMovie[key]);
     }
-    dispatch(uploadMovieAction(formData));
+    await dispatch(uploadMovieAction(formData));
+    await dispatch(getMovieListAction());
   };
 
   // Handle Delete Movie
@@ -249,9 +253,10 @@ export default function FilmManagement() {
         cancelButtonText: "No, cancel!",
         reverseButtons: true,
       })
-      .then((result) => {
+      .then(async (result) => {
         if (result.isConfirmed) {
-          dispatch(deleteMovieAction(dataMovie));
+          await dispatch(deleteMovieAction(dataMovie));
+          await dispatch(getMovieListAction());
         } else if (
           /* Read more about handling dismissals below */
           result.dismiss === Swal.DismissReason.cancel
@@ -273,7 +278,7 @@ export default function FilmManagement() {
           <input
             type="text"
             className="form-control"
-            placeholder="Search movie here ..."
+            placeholder="Tìm kiếm tên phim ..."
             aria-label="Recipient's username"
             aria-describedby="button-addon2"
             onChange={(event) => {
@@ -441,218 +446,237 @@ export default function FilmManagement() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {(rowsPerPage > 0
-              ? dataMovies.slice(
-                  page * rowsPerPage,
-                  page * rowsPerPage + rowsPerPage
-                )
-              : dataMovies
-            )
-              .filter((val) => {
-                if (searchMovie == "") {
-                  return val;
-                } else if (
-                  val.tenPhim.toLowerCase().includes(searchMovie.toLowerCase())
-                ) {
-                  return val;
-                }
-              })
-              .map((dataMovie) => (
-                <TableRow key={dataMovie.maPhim}>
-                  <TableCell component="th" scope="row" align="center">
-                    {dataMovie.maPhim}
-                  </TableCell>
-                  <TableCell align="center">{dataMovie.tenPhim}</TableCell>
-                  <TableCell align="center">
-                    <img
-                      src={dataMovie.hinhAnh}
-                      style={{
-                        width: "50px",
-                        height: "50px",
-                        objectFit: "cover",
-                      }}
-                    ></img>
-                  </TableCell>
-                  <TableCell align="center">
-                    <p
-                      style={{
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        width: "200px",
-                      }}
-                    >
-                      {dataMovie.moTa}
-                    </p>
-                  </TableCell>
-                  <TableCell align="center">{dataMovie.maNhom}</TableCell>
-                  <TableCell align="center">
-                    {dataMovie.ngayKhoiChieu}
-                  </TableCell>
-                  <TableCell align="center">{dataMovie.danhGia}</TableCell>
-                  <TableCell align="center">
-                    <button
-                      type="button"
-                      className="btn btn-outline-primary mr-2"
-                    >
-                      Tạo lịch chiếu
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-outline-success mr-2"
-                      onClick={() => toggleUpdateMovie(dataMovie)}
-                    >
-                      Sửa
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-outline-danger mr-2"
-                      onClick={() => handleDeleteMovie(dataMovie)}
-                    >
-                      Xóa
-                    </button>
-                    <Modal isOpen={modalUpdateMovie} toggle={toggleUpdateMovie}>
-                      <ModalHeader toggle={toggleUpdateMovie}>
-                        Sửa phim
-                      </ModalHeader>
-                      <ModalBody>
-                        <form
-                          className="user"
-                          onSubmit={handleSubmit(handleUpdateMovie)}
-                        >
-                          <div className="form-group row">
-                            <div className="col-sm-6 mb-3 mb-sm-0">
-                              <p className="text-monospace">Mã phim</p>
-                              <input
-                                type="text"
+            {dataMovies &&
+              (rowsPerPage > 0
+                ? dataMovies?.slice(
+                    page * rowsPerPage,
+                    page * rowsPerPage + rowsPerPage
+                  )
+                : dataMovies
+              )
+                .filter((val) => {
+                  if (searchMovie == "") {
+                    return val;
+                  } else if (
+                    val.tenPhim
+                      .toLowerCase()
+                      .includes(searchMovie.toLowerCase())
+                  ) {
+                    return val;
+                  }
+                })
+                .map((dataMovie) => (
+                  <TableRow key={dataMovie.maPhim}>
+                    <TableCell component="th" scope="row" align="center">
+                      {dataMovie.maPhim}
+                    </TableCell>
+                    <TableCell align="center">{dataMovie.tenPhim}</TableCell>
+                    <TableCell align="center">
+                      <img
+                        src={dataMovie.hinhAnh}
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          objectFit: "cover",
+                        }}
+                      ></img>
+                    </TableCell>
+                    <TableCell align="center">
+                      <p
+                        style={{
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          width: "200px",
+                        }}
+                      >
+                        {dataMovie.moTa}
+                      </p>
+                    </TableCell>
+                    <TableCell align="center">{dataMovie.maNhom}</TableCell>
+                    <TableCell align="center">
+                      {dataMovie.ngayKhoiChieu}
+                    </TableCell>
+                    <TableCell align="center">{dataMovie.danhGia}</TableCell>
+                    <TableCell align="center">
+                      <button
+                        type="button"
+                        className="btn btn-outline-primary mr-2"
+                      >
+                        Tạo lịch chiếu
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-outline-success mr-2"
+                        onClick={() => toggleUpdateMovie(dataMovie)}
+                      >
+                        Sửa
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-outline-danger mr-2"
+                        onClick={() => handleDeleteMovie(dataMovie)}
+                      >
+                        Xóa
+                      </button>
+                      <Modal
+                        isOpen={modalUpdateMovie}
+                        toggle={toggleUpdateMovie}
+                      >
+                        <ModalHeader toggle={toggleUpdateMovie}>
+                          Chỉnh sửa thông tin phim
+                        </ModalHeader>
+                        <ModalBody>
+                          <form
+                            className="user"
+                            onSubmit={handleSubmit(handleUpdateMovie)}
+                          >
+                            <div className="form-group row">
+                              <div className="col-sm-6 mb-3 mb-sm-0">
+                                <p className="text-monospace">Mã phim</p>
+                                <input
+                                  type="text"
+                                  className="form-control "
+                                  placeholder="Mã phim"
+                                  {...register("maPhim")}
+                                />
+                                {errors.maPhim && (
+                                  <Alert
+                                    severity="error"
+                                    className="text-monospace mt-3"
+                                  >
+                                    {errors.maPhim.message}
+                                  </Alert>
+                                )}
+                              </div>
+                              <div className="col-sm-6">
+                                <p className="text-monospace">Tên phim</p>
+                                <input
+                                  type="text"
+                                  className="form-control"
+                                  placeholder="Tên phim"
+                                  {...register("tenPhim")}
+                                />
+                                {errors.tenPhim && (
+                                  <Alert
+                                    severity="error"
+                                    className="text-monospace mt-3"
+                                  >
+                                    {errors.tenPhim.message}
+                                  </Alert>
+                                )}
+                              </div>
+                            </div>
+                            <div className="form-group row">
+                              <div className="col-sm-6 mb-3 mb-sm-0">
+                                <p className="text-monospace">Bí danh</p>
+                                <input
+                                  type="text"
+                                  className="form-control"
+                                  placeholder="Bí Danh"
+                                  {...register("biDanh")}
+                                />
+                                {errors.biDanh && (
+                                  <Alert
+                                    severity="error"
+                                    className="text-monospace mt-3"
+                                  >
+                                    {errors.biDanh.message}
+                                  </Alert>
+                                )}
+                              </div>
+                              <div className="col-sm-6">
+                                <p className="text-monospace">Trailer</p>
+                                <input
+                                  type="text"
+                                  className="form-control"
+                                  placeholder="Trailer"
+                                  {...register("trailer")}
+                                />
+                                {errors.trailer && (
+                                  <Alert
+                                    severity="error"
+                                    className="text-monospace mt-3"
+                                  >
+                                    {errors.trailer.message}
+                                  </Alert>
+                                )}
+                              </div>
+                            </div>
+                            <div className="form-group row">
+                              <div className="col-sm-6 mb-3 mb-sm-0">
+                                <p className="text-monospace">Đánh giá</p>
+                                <input
+                                  type="text"
+                                  className="form-control"
+                                  placeholder="Đánh giá"
+                                  {...register("danhGia")}
+                                />
+                                {errors.danhGia && (
+                                  <Alert
+                                    severity="error"
+                                    className="text-monospace mt-3"
+                                  >
+                                    {errors.danhGia.message}
+                                  </Alert>
+                                )}
+                              </div>
+                              <div className="col-sm-6">
+                                <p className="text-monospace">
+                                  Ngày khởi chiếu
+                                </p>
+                                <input
+                                  type="datetime-local"
+                                  className="form-control"
+                                  {...register("ngayKhoiChieu")}
+                                  required
+                                />
+                              </div>
+                            </div>
+                            <div className="form-group">
+                              <p className="text-monospace">Mô tả</p>
+                              <textarea
                                 className="form-control "
-                                placeholder="Mã phim"
-                                {...register("maPhim")}
+                                placeholder="Mô tả"
+                                {...register("moTa")}
+                                rows="4"
                               />
-                              {errors.maPhim && (
+                              {errors.moTa && (
                                 <Alert
                                   severity="error"
                                   className="text-monospace mt-3"
                                 >
-                                  {errors.maPhim.message}
+                                  {errors.moTa.message}
                                 </Alert>
                               )}
                             </div>
-                            <div className="col-sm-6">
-                              <p className="text-monospace">Tên phim</p>
+                            <div className="form-group">
+                              <p className="text-monospace">
+                                Hình ảnh (Định dạng: .JPEG, .PNG)
+                              </p>
                               <input
-                                type="text"
-                                className="form-control"
-                                placeholder="Tên phim"
-                                {...register("tenPhim")}
-                              />
-                              {errors.biDanh && (
-                                <Alert
-                                  severity="error"
-                                  className="text-monospace mt-3"
-                                >
-                                  {errors.biDanh.message}
-                                </Alert>
-                              )}
-                            </div>
-                          </div>
-                          <div className="form-group row">
-                            <div className="col-sm-6 mb-3 mb-sm-0">
-                              <p className="text-monospace">Bí danh</p>
-                              <input
-                                type="text"
-                                className="form-control"
-                                placeholder="Bí Danh"
-                                {...register("biDanh")}
-                              />
-                            </div>
-                            <div className="col-sm-6">
-                              <p className="text-monospace">Trailer</p>
-                              <input
-                                type="text"
-                                className="form-control"
-                                placeholder="Trailer"
-                                {...register("trailer")}
-                              />
-                              {errors.trailer && (
-                                <Alert
-                                  severity="error"
-                                  className="text-monospace mt-3"
-                                >
-                                  {errors.trailer.message}
-                                </Alert>
-                              )}
-                            </div>
-                          </div>
-                          <div className="form-group row">
-                            <div className="col-sm-6 mb-3 mb-sm-0">
-                              <p className="text-monospace">Đánh giá</p>
-                              <input
-                                type="text"
-                                className="form-control"
-                                placeholder="Đánh giá"
-                                {...register("danhGia")}
-                              />
-                              {errors.danhGia && (
-                                <Alert
-                                  severity="error"
-                                  className="text-monospace mt-3"
-                                >
-                                  {errors.danhGia.message}
-                                </Alert>
-                              )}
-                            </div>
-                            <div className="col-sm-6">
-                              <p className="text-monospace">Ngày khởi chiếu</p>
-                              <input
-                                type="datetime-local"
-                                className="form-control"
-                                {...register("ngayKhoiChieu")}
+                                type="file"
+                                {...register("hinhAnh")}
                                 required
                               />
                             </div>
-                          </div>
-                          <div className="form-group">
-                            <p className="text-monospace">Mô tả</p>
-                            <textarea
-                              className="form-control "
-                              placeholder="Mô tả"
-                              {...register("moTa")}
-                              rows="4"
-                            />
-                            {errors.moTa && (
-                              <Alert
-                                severity="error"
-                                className="text-monospace mt-3"
+                            <ModalFooter>
+                              <Button color="primary" type="submit">
+                                Submit
+                              </Button>
+                              <Button
+                                color="danger"
+                                onClick={toggleUpdateMovie}
                               >
-                                {errors.moTa.message}
-                              </Alert>
-                            )}
-                          </div>
-                          <div className="form-group">
-                            <p className="text-monospace">
-                              Hình ảnh (Định dạng: .JPEG, .PNG)
-                            </p>
-                            <input
-                              type="file"
-                              {...register("hinhAnh")}
-                              required
-                            />
-                          </div>
-                          <ModalFooter>
-                            <Button color="primary" type="submit">
-                              Submit
-                            </Button>
-                            <Button color="danger" onClick={toggleUpdateMovie}>
-                              Cancel
-                            </Button>
-                          </ModalFooter>
-                        </form>
-                      </ModalBody>
-                    </Modal>
-                  </TableCell>
-                </TableRow>
-              ))}
+                                Cancel
+                              </Button>
+                            </ModalFooter>
+                          </form>
+                        </ModalBody>
+                      </Modal>
+                    </TableCell>
+                  </TableRow>
+                ))}
             {emptyRows > 0 && (
               <TableRow style={{ height: 53 * emptyRows }}>
                 <TableCell colSpan={6} />
@@ -663,7 +687,7 @@ export default function FilmManagement() {
             <TableRow>
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
-                count={dataMovies.length}
+                count={dataMovies?.length}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 SelectProps={{

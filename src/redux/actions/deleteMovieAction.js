@@ -12,17 +12,13 @@ export function deleteMovieAction(value) {
     try {
       const { data } = await filmAPI.deleteMovie(value);
       dispatch({ type: DELETE_MOVIE_SUCCESS, payload: { data } });
-      Swal.fire("Delete Movie Successful !", "TIX ADMIN", "success").then((result) => {
-        if(result.isConfirmed){
-          window.location.reload();
-        }
-      });;
+      Swal.fire("Delete Movie Successful !", "TIX ADMIN", "success");
     } catch (error) {
       dispatch({
         type: DELETE_MOVIE_FAILURE,
-        payload: { error: error },
+        payload: { error: error.response.data },
       });
-      Swal.fire("Delete Movie Fail !", "TIX ADMIN", "error");
+      Swal.fire(error.response.data, "TIX ADMIN", "error");
     }
   };
 }

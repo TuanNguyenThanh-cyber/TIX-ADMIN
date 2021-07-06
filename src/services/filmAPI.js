@@ -1,6 +1,6 @@
 import baseAPI from "./baseAPI";
 
-const authAPI = {
+const filmAPI = {
   getMovieList: () => {
     return baseAPI.get("/QuanLyPhim/LayDanhSachPhim?maNhom=GP10");
   },
@@ -11,8 +11,8 @@ const authAPI = {
     return baseAPI.post("/QuanLyPhim/CapNhatPhimUpload", value);
   },
   deleteMovie: (value) => {
-    return baseAPI.delete(`QuanLyPhim/XoaPhim?MaPhim=${value.maPhim}`, value);
+    return baseAPI.delete(`/QuanLyPhim/XoaPhim?MaPhim=${value.maPhim}`, value);
   },
 };
 
-export default authAPI;
+export default filmAPI;

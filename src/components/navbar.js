@@ -81,7 +81,7 @@ export default function Navbar() {
               position: "absolute",
               top: "100%",
               right: "0",
-              width: "100%",
+              zIndex:'100'
             }}
           >
             <Card style={{ padding: "5px" }}>

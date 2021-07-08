@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import MovieSchedule from "./pages/MovieSchedule";
+import PageNotFound from "./pages/PageNotFound";
 
 function App() {
   return (
@@ -36,7 +37,6 @@ function App() {
                   <MovieSchedule></MovieSchedule>
                 </AdminLayout>
               </AdminRoute>
-
               <Route path="/admin/login" exact>
                 <Login></Login>
               </Route>
@@ -45,6 +45,9 @@ function App() {
               </Route>
               <Route path="/admin/forgotpassword" exact>
                 <ForgotPassword></ForgotPassword>
+              </Route>
+              <Route path="*">
+                <PageNotFound></PageNotFound>
               </Route>
             </Route>
           </Switch>

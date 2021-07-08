@@ -12,6 +12,9 @@ const theaterAPI = {
       `/QuanLyRap/LayThongTinCumRapTheoHeThong?maHeThongRap=${value}`
     );
   },
+  createShowTime: (value) => {
+    return baseAPI.post("/QuanLyDatVe/TaoLichChieu", value);
+  },
 };
 
 export default theaterAPI;

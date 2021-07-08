@@ -12,6 +12,7 @@ import deleteUserReducer from "./deleteUserReducer";
 import getMovieShowTimeReducer from "./getMovieShowTimeReducer";
 import getInfoTheaterSysReducer from "./getInfoTheaterSysReducer";
 import getInfoTheaterClusterSys from "./getInfoTheaterClusterSys";
+import createShowTimeReducer from "./createShowTimeReducer";
 
 const rootReducer = combineReducers({
   // Nơi khai báo các reducer con
@@ -28,6 +29,7 @@ const rootReducer = combineReducers({
   movieShowTime: getMovieShowTimeReducer,
   infoTheaterSys: getInfoTheaterSysReducer,
   infoTheaterClusterSys: getInfoTheaterClusterSys,
+  createShowTime: createShowTimeReducer,
 });
 
 export default rootReducer;

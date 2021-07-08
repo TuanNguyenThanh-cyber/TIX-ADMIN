@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import { getMovieShowTimeAction } from "../../redux/actions/getMovieShowTime";
 import { getInfoTheaterSysAction } from "../../redux/actions/getInfoTheaterSys";
 import { getInfoTheaterClusterSysAction } from "../../redux/actions/getInfoTheaterClusterSys";
+import { createShowTimeAction } from "../../redux/actions/createShowTimeAction";
 import PropTypes from "prop-types";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Table from "@material-ui/core/Table";
@@ -20,6 +21,26 @@ import FirstPageIcon from "@material-ui/icons/FirstPage";
 import KeyboardArrowLeft from "@material-ui/icons/KeyboardArrowLeft";
 import KeyboardArrowRight from "@material-ui/icons/KeyboardArrowRight";
 import LastPageIcon from "@material-ui/icons/LastPage";
+import { Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import Alert from "@material-ui/lab/Alert";
+import { formatDayAndTime } from "../../utils/formatDay";
+
+// Tạo schame validation
+const schema = yup.object().shape({
+  thoiLuongPhim: yup
+    .number()
+    .required("Thời lượng phim không được để trống")
+    .integer("Thời lượng phim phải là số nguyên")
+    .min(1, "Thời lượng phim phải lớn hơn 0"),
+  giaVe: yup
+    .number()
+    .required("Giá vé không được để trống")
+    .integer("Giá vé phải là số nguyên")
+    .min(20000, "Giá vé phải từ 20.000 vnd trở lên"),
+});
 
 const useStyles1 = makeStyles((theme) => ({
   root: {
@@ -117,12 +138,23 @@ export default function CustomPaginationActionsTable() {
   );
   const [movieShowTime, setMovieShowTime] = useState(dataMovieShowTime);
 
+  // Variable for form
+  const {
+    register,
+    formState: { errors, isValid },
+    handleSubmit,
+    setValue,
+  } = useForm({
+    resolver: yupResolver(schema),
+    mode: "onChange",
+  });
+
   // Create State to handleOnChange in Theater Sys
-  const [theaterSys, setTheaterSys] = useState("BHDStar");
-  const [theaterCluster, setTheaterCluster] = useState(
-    "BHD Star Cineplex - 3/2"
-  );
+  const [theaterSys, setTheaterSys] = useState("");
+  const [theaterCluster, setTheaterCluster] = useState("");
   const [theater, setTheater] = useState([]);
+  const [theaterName, setTheaterName] = useState("");
+  const [theaterID, setTheaterID] = useState("");
 
   // Handle OnChange in Theater Sys
   const handleChangeTheaterSys = (event) => {
@@ -134,6 +166,11 @@ export default function CustomPaginationActionsTable() {
     setTheaterCluster(event.target.value);
   };
 
+  // Handle OnChange TheaterName
+  const handleChangeTheaterName = (event) => {
+    setTheaterName(event.target.value);
+  };
+
   // Call API
   useEffect(() => {
     dispacth(getMovieShowTimeAction(id));
@@ -142,8 +179,69 @@ export default function CustomPaginationActionsTable() {
 
   // Call API when theaterSys change
   useEffect(() => {
+    console.log(theaterSys);
     dispacth(getInfoTheaterClusterSysAction(theaterSys));
+    if (theaterSys === "-- Vui lòng chọn hệ thống rạp --") {
+      setTheaterCluster("-- Vui lòng chọn cụm rạp --");
+    }
   }, [theaterSys]);
+
+  // Set theater when theaterCluster change
+  useEffect(() => {
+    let flag = 0;
+    dataInfoTheaterClusterSys &&
+      dataInfoTheaterClusterSys.map((item) => {
+        if (item.tenCumRap === theaterCluster) {
+          flag = 1;
+          setTheater([...item.danhSachRap]);
+        }
+      });
+    if (!flag) {
+      setTheater([]);
+    }
+  }, [theaterCluster]);
+
+  // Update theaterID when theaterName change
+  useEffect(() => {
+    let flag = 0;
+    theater.map((item) => {
+      if (item.tenRap === theaterName) {
+        flag = 1;
+        setTheaterID(item.maRap);
+      }
+    });
+    if (!flag) {
+      setTheaterID("");
+    }
+  }, [theaterName]);
+
+  // Update State movieShowTime
+  useEffect(() => {
+    setMovieShowTime(dataMovieShowTime);
+  }, [dataMovieShowTime]);
+
+  // Handle Create ShowTime
+  const handleCreateShowTime = (value) => {
+    console.log("value", value);
+    const objToCreateShowTime = {
+      maPhim: id,
+      ngayChieuGioChieu: formatDayAndTime(value.ngayChieuGioChieu),
+      maRap: theaterID,
+      giaVe: value.giaVe,
+      thoiLuongPhim: value.thoiLuongPhim,
+    };
+    console.log("ngayChieuGioChieu", objToCreateShowTime.ngayChieuGioChieu);
+    if (theaterID === "") {
+      alert("Vui lòng điền đầy đủ thông tin rạp");
+    } else {
+      dispacth(createShowTimeAction(objToCreateShowTime));
+      dispacth(getMovieShowTimeAction(id));
+    }
+  };
+
+  console.log("theater", theater);
+  console.log("theaterName", theaterName);
+  console.log("theaterID", theaterID);
 
   const emptyRows =
     rowsPerPage -
@@ -158,11 +256,6 @@ export default function CustomPaginationActionsTable() {
     setPage(0);
   };
 
-  // Update State movieShowTime
-  useEffect(() => {
-    setMovieShowTime(dataMovieShowTime);
-  }, [dataMovieShowTime]);
-
   return (
     <div
       className="movieSchedule"
@@ -175,7 +268,7 @@ export default function CustomPaginationActionsTable() {
         <hr />
         <div className="formMovieSchedule" style={{ padding: "15px" }}>
           <div className="container">
-            <form>
+            <form onSubmit={handleSubmit(handleCreateShowTime)}>
               <div className="row">
                 <div className="col-6">
                   <p className="text-monospace">Chọn hệ thống rạp</p>
@@ -184,6 +277,7 @@ export default function CustomPaginationActionsTable() {
                     style={{ appearance: "auto" }}
                     onChange={handleChangeTheaterSys}
                   >
+                    <option>-- Vui lòng chọn hệ thống rạp --</option>
                     {dataInfoTheaterSys &&
                       dataInfoTheaterSys.map((item) => (
                         <option key={item.maHeThongRap}>
@@ -197,7 +291,9 @@ export default function CustomPaginationActionsTable() {
                     style={{ appearance: "auto" }}
                     onChange={handleChangeTheaterCluster}
                   >
+                    <option>-- Vui lòng chọn cụm rạp --</option>
                     {dataInfoTheaterClusterSys &&
+                      theaterSys !== "-- Vui lòng chọn hệ thống rạp --" &&
                       dataInfoTheaterClusterSys.map((item) => (
                         <option key={item.maCumRap}>{item.tenCumRap}</option>
                       ))}
@@ -206,19 +302,54 @@ export default function CustomPaginationActionsTable() {
                   <select
                     className="form-control mb-3"
                     style={{ appearance: "auto" }}
-                  ></select>
+                    onChange={handleChangeTheaterName}
+                  >
+                    <option>-- Vui lòng chọn rạp --</option>
+                    {theater.length !== 0 &&
+                      theater.map((item) => <option>{item.tenRap}</option>)}
+                  </select>
+                  {theaterID === "" && (
+                    <Alert severity="error" className="text-monospace mt-3">
+                      Vui lòng điền thông tin rạp
+                    </Alert>
+                  )}
                 </div>
                 <div className="col-6">
                   <p className="text-monospace">Chọn ngày chiếu giờ chiếu</p>
-                  <input type="datetime-local" className="form-control mb-3" />
+                  <input
+                    type="datetime-local"
+                    className="form-control mb-3"
+                    {...register("ngayChieuGioChieu")}
+                    required
+                  />
                   <p className="text-monospace">Chọn thời lượng phim</p>
-                  <input type="text" className="form-control mb-3" />
+                  <input
+                    type="text"
+                    className="form-control mb-3"
+                    {...register("thoiLuongPhim")}
+                  />
+                  {errors.thoiLuongPhim && (
+                    <Alert severity="error" className="text-monospace mt-3">
+                      {errors.thoiLuongPhim.message}
+                    </Alert>
+                  )}
                   <p className="text-monospace">Giá vé</p>
-                  <input type="text" className="form-control mb-3" />
+                  <input
+                    type="text"
+                    className="form-control mb-3"
+                    {...register("giaVe")}
+                  />
+                  {errors.giaVe && (
+                    <Alert severity="error" className="text-monospace mt-3">
+                      {errors.giaVe.message}
+                    </Alert>
+                  )}
                 </div>
               </div>
               <div className="text-right">
-                <button className="btn btn-primary ">Tạo lịch chiếu</button>
+                <button className="btn btn-primary" type="submit">
+                  Tạo lịch chiếu
+                </button>
               </div>
             </form>
           </div>
@@ -237,27 +368,24 @@ export default function CustomPaginationActionsTable() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {movieShowTime &&
-                movieShowTime?.heThongRapChieu.map((showTimes) =>
-                  showTimes.cumRapChieu.map((showTime) =>
-                    showTime.lichChieuPhim.map((item) => (
-                      <TableRow key={item.maLichChieu}>
-                        <TableCell align="center">{item.maLichChieu}</TableCell>
-                        <TableCell align="center">
-                          {showTimes.tenHeThongRap}
-                        </TableCell>
-                        <TableCell align="center">
-                          {showTime.tenCumRap}
-                        </TableCell>
-                        <TableCell align="center">
-                          {item.ngayChieuGioChieu}
-                        </TableCell>
-                        <TableCell align="center">{item.giaVe}</TableCell>
-                        <TableCell align="center">{item.thoiLuong}</TableCell>
-                      </TableRow>
-                    ))
-                  )
-                )}
+              {movieShowTime?.heThongRapChieu.map((showTimes) =>
+                showTimes.cumRapChieu.map((showTime) =>
+                  showTime.lichChieuPhim.map((item) => (
+                    <TableRow key={item.maLichChieu}>
+                      <TableCell align="center">{item.maLichChieu}</TableCell>
+                      <TableCell align="center">
+                        {showTimes.tenHeThongRap}
+                      </TableCell>
+                      <TableCell align="center">{showTime.tenCumRap}</TableCell>
+                      <TableCell align="center">
+                        {item.ngayChieuGioChieu}
+                      </TableCell>
+                      <TableCell align="center">{item.giaVe}</TableCell>
+                      <TableCell align="center">{item.thoiLuong}</TableCell>
+                    </TableRow>
+                  ))
+                )
+              )}
               {emptyRows > 0 && (
                 <TableRow style={{ height: 53 * emptyRows }}>
                   <TableCell colSpan={6} />

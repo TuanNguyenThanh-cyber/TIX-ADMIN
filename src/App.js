@@ -7,6 +7,7 @@ import UserManagement from "./pages/UserManagement";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
+import MovieSchedule from "./pages/MovieSchedule";
 
 function App() {
   return (
@@ -20,16 +21,22 @@ function App() {
                   <Dashboard></Dashboard>
                 </AdminLayout>
               </AdminRoute>
-              <AdminRoute path="/admin/quanlyphim">
+              <AdminRoute path="/admin/quanlyphim" exact>
                 <AdminLayout>
                   <FilmManagement></FilmManagement>
                 </AdminLayout>
               </AdminRoute>
-              <AdminRoute path="/admin/quanlynguoidung">
+              <AdminRoute path="/admin/quanlynguoidung" exact>
                 <AdminLayout>
                   <UserManagement></UserManagement>
                 </AdminLayout>
               </AdminRoute>
+              <AdminRoute path="/admin/quanlyphim/lichchieuphim/:id" exact>
+                <AdminLayout>
+                  <MovieSchedule></MovieSchedule>
+                </AdminLayout>
+              </AdminRoute>
+
               <Route path="/admin/login" exact>
                 <Login></Login>
               </Route>
